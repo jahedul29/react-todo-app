@@ -33,16 +33,19 @@ const dropIn = {
 function TodoModal({ type, modalOpen, setModalOpen, todo }) {
   const { refreshTodos } = useTodoContext();
   const [title, setTitle] = useState('');
-  const [status, setStatus] = useState('incomplete');
+  const [progress, setProgress] = useState(0);
+  const [description, setDescription] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (type === 'update' && todo) {
       setTitle(todo.title);
-      setStatus(todo.status);
+      setProgress(todo.progress || 0);
+      setDescription(todo.description || '');
     } else {
       setTitle('');
-      setStatus('incomplete');
+      setProgress(0);
+      setDescription('');
     }
   }, [type, todo, modalOpen]);
 
@@ -53,27 +56,31 @@ function TodoModal({ type, modalOpen, setModalOpen, todo }) {
       return;
     }
 
-    if (title && status) {
+    if (title) {
       try {
         setIsSubmitting(true);
         if (type === 'add') {
           await createTodo({
             _id: uuid(),
             name: title,
-            progress: status === 'complete' ? 100 : 0,
-            description: 'test description',
+            progress,
+            description,
           });
           toast.success('Task added successfully');
           refreshTodos();
         }
 
         if (type === 'update') {
-          if (todo.title !== title || todo.status !== status) {
+          if (
+            todo.title !== title ||
+            todo.progress !== progress ||
+            todo.description !== description
+          ) {
             await updateTodo({
-              _id: todo.id,
+              id: todo.id,
               name: title,
-              progress: status === 'complete' ? 100 : 0,
-              description: todo.description || 'test description',
+              progress,
+              description,
             });
             toast.success('Task Updated successfully');
             refreshTodos();
@@ -140,17 +147,30 @@ function TodoModal({ type, modalOpen, setModalOpen, todo }) {
                   disabled={isSubmitting}
                 />
               </label>
-              <label htmlFor="type">
-                Status
-                <select
-                  id="type"
-                  value={status}
-                  onChange={(e) => setStatus(e.target.value)}
+              <label htmlFor="description">
+                Description
+                <textarea
+                  id="description"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
                   disabled={isSubmitting}
-                >
-                  <option value="incomplete">Incomplete</option>
-                  <option value="complete">Completed</option>
-                </select>
+                  rows={4}
+                />
+              </label>
+              <label htmlFor="progress">
+                Progress
+                <input
+                  type="number"
+                  id="progress"
+                  value={progress}
+                  onChange={(e) =>
+                    Number(e.target.value) <= 100 &&
+                    setProgress(Number(e.target.value))
+                  }
+                  disabled={isSubmitting}
+                  min="0"
+                  max="100"
+                />
               </label>
               <div className={styles.buttonContainer}>
                 <Button type="submit" variant="primary" disabled={isSubmitting}>
