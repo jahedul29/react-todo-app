@@ -2,8 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { MdOutlineClose } from 'react-icons/md';
 import { AnimatePresence, motion } from 'framer-motion';
 import toast from 'react-hot-toast';
-import { format } from 'date-fns';
 import { v4 as uuid } from 'uuid';
+import RangeSlider from 'react-range-slider-input';
+import 'react-range-slider-input/dist/style.css';
 import styles from '../styles/modules/modal.module.scss';
 import Button from './Button';
 import { createTodo, updateTodo } from '../api/todos';
@@ -158,19 +159,18 @@ function TodoModal({ type, modalOpen, setModalOpen, todo }) {
                 />
               </label>
               <label htmlFor="progress">
-                Progress
-                <input
-                  type="number"
-                  id="progress"
-                  value={progress}
-                  onChange={(e) =>
-                    Number(e.target.value) <= 100 &&
-                    setProgress(Number(e.target.value))
-                  }
-                  disabled={isSubmitting}
-                  min="0"
-                  max="100"
-                />
+                Progress: {progress}
+                <div className={styles.sliderContainer}>
+                  <RangeSlider
+                    id="progress"
+                    min={0}
+                    max={100}
+                    value={[0, progress]}
+                    onInput={(e) => setProgress(e[1])}
+                    disabled={isSubmitting}
+                    className={styles.progressSlider}
+                  />
+                </div>
               </label>
               <div className={styles.buttonContainer}>
                 <Button type="submit" variant="primary" disabled={isSubmitting}>
